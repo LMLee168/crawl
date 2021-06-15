@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-import base64
-
-import requests
-import random
 
 class ProxySettings:
     # 代理服务器
@@ -28,13 +24,5 @@ class ProxySettings:
         }
         return proxies
     pass
-
-# 配置全局变量
-# 数据管理
-# dataManager = DataManager()
-# 文件上传
-# ossUploader = OssUploader('soda-cover')
-# 电影管理
-# movieManager = MovieManager(dataManager, ossUploader)
 
 global_proxy = ProxySettings()
