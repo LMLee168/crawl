@@ -2,16 +2,11 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
-from dataclasses import dataclass, field
-
 import scrapy
 
 class StarcrawlerItem(scrapy.Item):
 
-        createTime = scrapy.Field()
-        updateTime = scrapy.Field()
-
-    # def initField(self):
+    def initField(self):
         default = ""
         item = {}
         item["name"] = default
@@ -27,6 +22,7 @@ class StarcrawlerItem(scrapy.Item):
         item["weight"] = default
         item["introduction"] = default
         item["photos"] = default
+        return item
 
 class AstrocrawlerItem(scrapy.Item):
-    pass
+        pass

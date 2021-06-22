@@ -3,7 +3,6 @@
 import re
 import mysql.connector
 from mysql.connector import errorcode
-import logging
 
 class MySQLInstance(object):
 
@@ -29,7 +28,6 @@ class MySQLInstance(object):
                 print(err)
             exit(-1)
 
-    @classmethod
     def table_exists(self,  table_name):
         sql = "show tables;"
         cursor = self.conn.cursor()
@@ -42,33 +40,30 @@ class MySQLInstance(object):
         else:
             return 0
 
-
-    @classmethod
     def create_insert_sql(self, item, info_key):
-        insert_sql = "insert into " + info_key  + "({}) values ({})"
+        insert_sql = "insert into " + info_key + "({}) values ({}) ON DUPLICATE KEY UPDATE "
         keys, values = self._create_insert_sql(item)
         insert = insert_sql.format(keys, values)
-        return insert
+        for key in list(item.keys())[2: -2]:
+            insert += "{} = '{}', ".format(key, item[key])
+        return insert[:-2]
 
-    @classmethod
-    def _create_insert_sql(self, star_info):
+    def _create_insert_sql(self, value_info):
         keys, values = [], []
-        for key, value in star_info.items():
+        for key, value in value_info.items():
             if value != '' and value is not None and value != 'None':
                 keys.append(key)
                 values.append(value)
         return ','.join(keys), \
                ','.join(["'" + str(v).replace("'", "\\'").replace('&#39;', "\\'") + "'" for v in values])
 
-    @classmethod
-    def creat_table(self,  item, info_key):
-        code  = self.table_exists( info_key)
+    def creat_table(self, info_key):
+        code = self.table_exists(info_key)
         if ( code != 1 ):
-            print("table with info_key is not exists !")
-            match_sql = self.create_star_table_sql(info_key)
+            print("table with {} is not exists !".format(info_key))
+            match_sql = self.create_table_sql(info_key)
             self.execute_sql(match_sql)
 
-    @classmethod
     def execute_sql(self, sql, values=None):
         cursor = self.conn.cursor()
         cursor.execute(sql, values)
@@ -85,15 +80,14 @@ class MySQLInstance(object):
         cursor.close()
         return result
 
-    @classmethod
-    def create_star_table_sql(self, info_key):
+    def create_table_sql(self, info_key):
         if info_key == "star" :
             return '''
                     CREATE TABLE star (
                       id bigint(20) primary key NOT NULL AUTO_INCREMENT,
                       name varchar(10) NOT NULL comment "名字",
                       avatar varchar(150) default NULL comment "头像",
-                      gender varchar(20) default NULL comment "性别",
+                      gender int(4) default NULL comment "性别",
                       nationality varchar(20) default NULL comment "国籍",
                       native_place varchar(50) default NULL comment "籍贯",
                       birthday datetime default NULL comment "生日",
@@ -104,14 +98,15 @@ class MySQLInstance(object):
                       hobby varchar(200) default  null comment "爱好",
                       introduction text default  null comment "介绍",
                       photos varchar(500) default  null comment "相册",
+                      source int(40) default null comment "来源 1：sina",
                       createTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                       updateTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                       UNIQUE KEY index_id (id)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='明星信息表'
                 '''
-        if info_key == "fate_day":
+        if info_key in ["fate_day", "fate_tomorrow"]:
             return '''
-                    CREATE TABLE fate_day (
+                    CREATE TABLE {table_name} (
                        id bigint(20) primary key NOT NULL AUTO_INCREMENT,
                        name varchar(10) NOT NULL comment "星座名称",
                        astro_time varchar(50) default NULL comment "星座时间",
@@ -121,41 +116,18 @@ class MySQLInstance(object):
                        work_index varchar(10) default  null comment "工作指数",
                        fortune_index varchar(10) default  null comment "财运指数",
                        health_index varchar(10) default  null comment "健康指数",
-                       lucky_num varchar(10) default  null comment "幸运数字",
+                       lucky_num int(4) default  null comment "幸运数字",
                        lucky_color varchar(10) default  null comment "幸运颜色",
                        noble_constellation varchar(10) default  null comment "贵人星座",
-                       important_ varchar(500) default  null comment "重要天象",
+                       important varchar(500) default  null comment "重要天象",
                        fine_review varchar(500) default  null comment "精评",
                        dilatino varchar(500) default  null comment "详述",
+                        source int(4) default null comment "来源 1：sina",
                         createTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                         updateTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                         UNIQUE KEY index_id (id)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='今日运势表'
-                '''
-
-        if info_key == "fate_tomorrow":
-            return '''
-                    CREATE TABLE fate_tomorrow (
-                      id bigint(20) primary key NOT NULL AUTO_INCREMENT,
-                       name varchar(10) NOT NULL comment "星座名称",
-                       astro_time varchar(50) default NULL comment "星座时间",
-                       valid_time varchar(50) default NULL comment "有效日期",
-                       luck varchar(10) default  null comment "幸运值",
-                       love_index varchar(10) default  null comment "爱情指数",
-                       work_index varchar(10) default  null comment "工作指数",
-                       fortune_index varchar(10) default  null comment "财运指数",
-                       health_index varchar(10) default  null comment "健康指数",
-                       lucky_num varchar(10) default  null comment "幸运数字",
-                       lucky_color varchar(10) default  null comment "幸运颜色",
-                       noble_constellation varchar(10) default  null comment "贵人星座",
-                       important_ varchar(500) default  null comment "重要天象",
-                       fine_review varchar(500) default  null comment "精评",
-                       dilatino varchar(500) default  null comment "详述",
-                        createTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                        updateTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                        UNIQUE KEY index_id (id)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='明日运势表'
-                '''
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='运势表'
+                '''.format(table_name=info_key)
 
         if info_key == "fate_week":
             return '''
@@ -164,20 +136,21 @@ class MySQLInstance(object):
                        name varchar(10) NOT NULL comment "星座名称",
                        astro_time varchar(50) default NULL comment "星座时间",
                        valid_time varchar(50) default NULL comment "有效日期",
-                       entirety varchar (20) default NULL comment "整体运势",
+                       
                        entirety_star int(4) default NULL comment "星级 满5星",
-                       entirety_desc text default null comment "整体运势描述"
-                        love varchar (20) default NULL comment "爱情运势",
+                       entirety_desc text default null comment "整体运势描述",
+                       
                         love_star int(4) default NULL comment "星级 满5星",
-                        love_desc text default null comment "爱情运势描述"
-                        work_study varchar (20) default NULL comment "工作学业运势",
+                        love_desc text default null comment "爱情运势描述",
+                        
                         work_study_star int(4) default NULL comment "星级 满5星",
-                        work_study_desc text default null comment "工作学业运势描述"
+                        work_study_desc text default null comment "工作学业运势描述",
                        noble_constellation varchar(10) default  null comment "贵人星座",
                        new_attempt varchar(500) default  null comment "新尝试",
-                       location varchar(20) default  null comment "开运方位/地点",
-                       lucky_star_day varchar(20) default  null comment "吉星高照日",
-                       red_alert_day varchar(20) default  null comment "红色警报日", 
+                       lucky_location varchar(20) default  null comment "开运方位/地点",
+                       lucky_day varchar(20) default  null comment "吉星高照日",
+                       alert_day varchar(20) default  null comment "红色警报日", 
+                       source int(4) default null comment "来源 1：sina",
                       createTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                       updateTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                       UNIQUE KEY index_id (id)
@@ -192,15 +165,13 @@ class MySQLInstance(object):
                        astro_time varchar(50) default NULL comment "星座时间",
                        valid_time varchar(50) default NULL comment "有效日期",
                        tips text default  null comment "本月tips",
-                       entirety varchar (20) default NULL comment "整体运势",
                        entirety_star int(4) default NULL comment "星级 满5星",
-                       entirety_desc text default null comment "整体运势描述"
-                        love varchar (20) default NULL comment "爱情运势",
+                       entirety_desc text default null comment "整体运势描述",
                         love_star int(4) default NULL comment "星级 满5星",
                         love_desc text default null comment "爱情运势描述",
-                        work_finance varchar (20) default NULL comment "工作理财运势",
                         work_finance_star int(4) default NULL comment "星级 满5星",
-                        work_finance_desc text default null comment "工作理财运势描述"
+                        work_finance_desc text default null comment "工作理财运势描述",
+                        source int(4) default null comment "来源 1：sina",
                       createTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                       updateTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                       UNIQUE KEY index_id (id)
@@ -216,16 +187,12 @@ class MySQLInstance(object):
                        valid_time varchar(50) default NULL comment "有效日期",
                        title varchar(500) default null comment "标题",
                        summary text default null comment "综述",
-                        love varchar(500) default null comment "爱情运标题",
                         love_desc text default null comment "爱情运描述",
-                        work varchar(500) default null comment "工作运标题",
                         work_desc text default null comment "工作运描述",
-                        gam_noble varchar(500) default null comment "社交贵人运标题",
                         gam_noble_desc text default null comment "社交贵人运描述",
-                        health varchar(500) default null comment "健康运标题",
                         health_desc text default null comment "健康运描述",
-                        wealth varchar(500) default null comment "财运标题",
-                        wealth_desc text default null comment "财运描述",
+                        finance_desc text default null comment "财运描述",
+                        source int(4) default null comment "来源 1：sina",
                       createTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                       updateTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                       UNIQUE KEY index_id (id)
@@ -239,9 +206,10 @@ class MySQLInstance(object):
                        name varchar(10) NOT NULL comment "星座名称",
                        astro_time varchar(50) default NULL comment "星座时间",
                        valid_time varchar(50) default NULL comment "有效日期",
-                       desc text default  null comment "描述",
-                       girl_desc text default null comment "女生描述",
-                       boy_desc text default  null comment "男生描述",
+                       summary text default  null comment "描述",
+                       girl text default null comment "女生描述",
+                       boy text default  null comment "男生描述",
+                       source int(4) default null comment "来源 1：sina",
                       createTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                       updateTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                       UNIQUE KEY index_id (id)

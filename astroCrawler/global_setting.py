@@ -23,6 +23,5 @@ class ProxySettings:
             "https": self.proxyMeta,
         }
         return proxies
-    pass
 
 global_proxy = ProxySettings()

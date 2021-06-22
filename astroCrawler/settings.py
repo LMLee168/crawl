@@ -33,6 +33,8 @@ DOWNLOAD_TIMEOUT = 5
 
 # Disable cookies (enabled by default)
 COOKIES_ENABLED = False
+RETRY_TIMES = 3
+RETRY_HTTP_CODECS = [500, 502, 503, 504, 408, 404]
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
