@@ -55,15 +55,9 @@ class StarSpider(BaseSpider):
         item['nationality'] = nationality
         birth = data_tr.xpath("./td[@itemprop='birthDate']/text()").extract()
         item['birthday'] = birth[0].strip() if birth else ""
-        data_content = response.xpath("string(//div[@class='border content']/div[2]/div[@itemprop='description'])")
-        item['introduction'] = data_content.extract()[0].strip()
+        data_content = response.xpath("//div[@class='border content']/div[2]/div[@itemprop='description']")
+        item['introduction'] = data_content.xpath("string(.)").extract()[0].strip()
 
-        # item['native_place'] = ""
-        # item['constellation'] = ""
-        # item["hobby"] = ""
-        # item['job'] = ""
-        # item['height'] = ""
-        # item['weight'] = ""
         data_ps = response.xpath("//div[@class='border content']/div[2]/p")
         for p in data_ps:
             tag = p.xpath("./strong/text()").extract()[0].rstrip("：").strip()
@@ -71,18 +65,6 @@ class StarSpider(BaseSpider):
             if label == None:
                 continue
             item[label] = p.xpath("./text()").extract()[0].strip("cm").strip("kg")
-            # if "籍贯" in tag:
-            #     item['native_place'] = p.xpath("./text()").extract()[0].strip()
-            # if "星座" in tag:
-            #     item['constellation'] = p.xpath("./text()").extract()[0].strip()
-            # if "爱好" in tag:
-            #     item["hobby"] = p.xpath("./text()").extract()[0].strip()
-            # if "职业" in tag:
-            #     item['job'] = p.xpath("./text()").extract()[0].strip()
-            # if "身高" in tag:
-            #     item['height'] = p.xpath("./text()").extract()[0].strip("cm")
-            # if "体重" in tag:
-            #     item['weight'] = p.xpath("./text()").extract()[0].strip("kg")
 
         item["photos"] = self.parse_photos(response)
 
@@ -107,6 +89,7 @@ class StarSpider(BaseSpider):
         if info_key == "star":
             self.instance.creat_table(info_key)
             sql = self.instance.create_insert_sql(item, info_key)
+            print("sql=" + sql)
             self.instance.execute_sql(sql, None)
 
     def write_to_txt(self, item, info_key):

@@ -12,7 +12,6 @@ class MySQLInstance(object):
                                             password=passwd,
                                             host=host,
                                             database=database)
-        pass
 
     @classmethod
     def create_instance(cls, user, passwd, host, database):
@@ -45,7 +44,9 @@ class MySQLInstance(object):
         keys, values = self._create_insert_sql(item)
         insert = insert_sql.format(keys, values)
         for key in list(item.keys())[2: -2]:
-            insert += "{} = '{}', ".format(key, item[key])
+            print(key)
+            print(item[key])
+            insert += '{} = "{}", '.format(key, item[key])
         return insert[:-2]
 
     def _create_insert_sql(self, value_info):
@@ -101,7 +102,7 @@ class MySQLInstance(object):
                       source int(40) default null comment "来源 1：sina",
                       createTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                       updateTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                      UNIQUE KEY index_id (id)
+                      UNIQUE KEY index_id (id), unique key idx_name_birth (name, birthday)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='明星信息表'
                 '''
         if info_key in ["fate_day", "fate_tomorrow"]:
@@ -125,7 +126,7 @@ class MySQLInstance(object):
                         source int(4) default null comment "来源 1：sina",
                         createTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                         updateTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                        UNIQUE KEY index_id (id)
+                        UNIQUE KEY index_id (id), unique key idx_name_valid_time (name, valid_time)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='运势表'
                 '''.format(table_name=info_key)
 
@@ -153,7 +154,7 @@ class MySQLInstance(object):
                        source int(4) default null comment "来源 1：sina",
                       createTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                       updateTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                      UNIQUE KEY index_id (id)
+                      UNIQUE KEY index_id (id), unique key idx_name_valid_time (name, valid_time)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='周运势表'
                 '''
 
@@ -174,7 +175,7 @@ class MySQLInstance(object):
                         source int(4) default null comment "来源 1：sina",
                       createTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                       updateTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                      UNIQUE KEY index_id (id)
+                      UNIQUE KEY index_id (id), unique key idx_name_valid_time (name, valid_time)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='月运势表'
                 '''
 
@@ -195,7 +196,7 @@ class MySQLInstance(object):
                         source int(4) default null comment "来源 1：sina",
                       createTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                       updateTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                      UNIQUE KEY index_id (id)
+                      UNIQUE KEY index_id (id), unique key idx_name_valid_time (name, valid_time)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='年运势表'
                 '''
 
@@ -212,6 +213,6 @@ class MySQLInstance(object):
                        source int(4) default null comment "来源 1：sina",
                       createTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                       updateTime datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                      UNIQUE KEY index_id (id)
+                      UNIQUE KEY index_id (id), unique key idx_name_valid_time (name, valid_time)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='年度爱情运势表'
                 '''

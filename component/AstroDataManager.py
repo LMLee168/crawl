@@ -1,11 +1,34 @@
 # -*- coding: utf-8 -*-
 import logging
-from astroCrawler.items import AstrocrawlerItem
+from enumcom import BaseEnum, AstroEnum
 
 class AstroDataManager(object):
     def __init__(self, mysqlInstance):
         self.mysqlInstance = mysqlInstance
+        self.source = BaseEnum.DataSourceEnum
+        self.constell = AstroEnum.ConstellationEnum
         self.logger = logging.getLogger('AstroDataManager')
+
+    def getConstell(self):
+        # 白羊座，金牛座 双子座 巨蟹座 狮子座 处女座 天秤座 天蝎座 射手座 摩羯座 水瓶座 双鱼座
+        constellations = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius',
+                          'Capricorn', 'Aquarius', 'Pisces']
+        return constellations
+
+    def fate_base(self, response):
+        data = self.article(response)
+        data["source"] = self.source.SINA.value
+        para = dict(response.meta["para"])
+        fate = para["fate"]
+        constell = para["constell"]
+        self.fate_detail(data, response, constell, fate)
+        self.mysqlInstance.creat_table(fate)
+        sql = self.mysqlInstance.create_insert_sql(data, fate)
+        self.mysqlInstance.execute_sql(sql, None)
+
+    def next_url(self, url, astroName, dayType):
+        next_url = url + dayType + "_" + astroName + "/"
+        return next_url
 
     def article(self, response):
 
@@ -14,7 +37,6 @@ class AstroDataManager(object):
         head = article.xpath("./div[@class='head clearfix']")
         item["name"] = head.xpath("./div[@class='tit']/div[@class='tit_n']/text()").extract()[0].strip()
         item["astro_time"] = head.xpath("./div[@class='tit']/div[@class='tit_d']/text()").extract()[0].strip()
-        # item["fateType"] = head.xpath("./div[@class='info']/div[@class='info_m']/span[@class='sp1']/text()").extract()[0].strip()
         item["valid_time"] = head.xpath("./div[@class='info']/div[@class='time']/text()").extract()[0].strip().split("：")[1]
         return item
 
@@ -38,13 +60,13 @@ class AstroDataManager(object):
         trs = content.xpath("./table[@class='tb']/tr")
         for tr in trs:
             tds = tr.xpath("./td")
-            for i in range(len(tds)):
-                tag = tds[i].xpath("string(.)").extract()[0]
+            for i in range(0, len(tds), 2):
+                tag = tds[i].xpath("string(.)").extract()[0].strip()
                 label = self.getLabel(tag)
                 if label == None or label.strip() == '':
                     continue
-                data[label] = tds[i+1].xpath("string(.)").extract()[0]
-
+                ss = tds[i+1].xpath("string(.)").extract()[0].strip()
+                data[label] = ss
         return data
 
     def week_month_detail(self, content, data):

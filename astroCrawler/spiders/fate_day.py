@@ -2,7 +2,6 @@
 import scrapy
 
 from ..spiders.base import BaseSpider
-from component.astrobase_parser import AstroBaseParser
 
 class FateDaySpider(BaseSpider):
     name = 'fate_day'
@@ -25,18 +24,18 @@ class FateDaySpider(BaseSpider):
         'RANDOMIZE_DOWNLOAD_DELAY': False,
         'HTTPERROR_ALLOW_ALL': True
     }
-    fate_types = ['fate_day']
+    fate_types = ['fate_day', 'fate_tomorrow']
 
     def __init__(self, production=False, *args, **kwargs):
         BaseSpider.__init__(self, production, *args, **kwargs)
-        self.fateDetail = AstroBaseParser()
         self.name = "fate_day"
 
     def start_requests(self):
-        for constell in self.fateDetail.getConstell():
-            url = self.fateDetail.next_url(self.start_urls[0], constell, self.name)
-            para = {"constell": constell, "fate": self.name}
-            yield scrapy.Request(url, callback=self.fateDetail.fate_detail, meta={"para": para}, dont_filter=True)
+        for fate in self.fate_types:
+            for constell in self.astro_manager.getConstell():
+                url = self.astro_manager.next_url(self.start_urls[0], constell, fate)
+                para = {"constell": constell, "fate": fate}
+                yield scrapy.Request(url, callback=self.astro_manager.fate_base, meta={"para": para}, dont_filter=True)
 
 
 

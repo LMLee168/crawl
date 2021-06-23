@@ -1,5 +1,7 @@
 
+N
+astroCrawler/global_setting.py,2/5/2538a5edb1be9bdb75fae9ed3ab640f1fbefcc6a
 E
-enumcom/GenderEnum.py,2/4/2497f8dfa28add0480b2ce12e9a38ab7f173fa8e
-I
-enumcom/DataSourceEnum.py,c/6/c6b915eb9723babb276557e38218b5c094bdd45c
+astroCrawler/items.py,0/1/01a0c850ae893bb51e305cb61901a2e56a2cf268
+H
+astroCrawler/settings.py,7/a/7ae4e3a7a335243840704e6665d99dcc8fbb8fb2

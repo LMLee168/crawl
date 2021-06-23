@@ -11,3 +11,6 @@ class GenderEnum(Enum):
 
     MALE = "男", 1
     FEMALE = "女", 2
+
+class DataSourceEnum(Enum):
+    SINA = 1

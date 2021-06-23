@@ -1,3 +1,3 @@
 from scrapy import cmdline
 
-cmdline.execute("scrapy crawl astro".split())
+cmdline.execute("scrapy crawl fate_year_love".split())
